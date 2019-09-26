@@ -1,0 +1,61 @@
+---
+- name: Example showing VMware HTTP API utilization
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vcenter_vars.yml
+  tasks:
+    - name: Login into vCenter and get cookies
+      uri:
+        url: https://{{ vcenter_hostname }}/rest/com/vmware/cis/session
+        force_basic_auth: yes
+        validate_certs: no
+        method: POST
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+      register: login
+
+    - name: Get all folder
+      uri:
+        url: https://{{ vcenter_hostname }}/rest/vcenter/folder
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+      register: vcfolder
+  
+    - set_fact:
+        datacenter_folder: "{{ item.folder }}"
+      loop: "{{ vcfolder.json.value | json_query(name) }}"
+      vars:
+        name: "[?type=='DATACENTER']"
+
+    - name: Get all datacenter from vCenter using cookies from last task
+      uri:
+        url: https://{{ vcenter_hostname }}/rest/vcenter/datacenter/{{ dc_name }}
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+      register: vcdc
+      ignore_errors: True
+
+    - name: Create datacenter if {{ dc_name }} does not exists
+      uri:
+        url: https://{{ vcenter_hostname }}/rest/vcenter/datacenter
+        force_basic_auth: yes
+        validate_certs: no
+        method: POST
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+        body_format: json
+        body:
+          spec:
+            folder: "{{ datacenter_folder }}"
+            name: "{{ dc_name }}"
+      when: vcdc.status == 404
+
+    - debug:
+        msg: "Datacenter {{ dc_name }} already exists"
+      when: vcdc.status != 404
+    

@@ -1,0 +1,8 @@
+[vcenter1]
+10.65.200.215
+
+[vcenter1:vars]
+ansible_network_os=vmware
+ansible_user=administrator@vsphere.local
+ansible_password=Esxi@123$%
+

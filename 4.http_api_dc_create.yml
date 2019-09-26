@@ -1,0 +1,27 @@
+---
+- name: Example showing VMware HTTP API Plugin utilization
+  hosts: vcenter1
+  connection: httpapi
+  gather_facts: no
+  vars_files:
+    - vcenter_vars.yml
+  vars:
+    ansible_python_interpreter: '/Volumes/data/venv3/bin/python'
+  tasks:
+    - name: Get Folder to create datacenter in
+      vmware_core_info:
+        object_type: 'folder'
+        filters:
+          - folder_types: DATACENTER
+      register: vcfolder
+    
+    - set_fact:
+        dc_folder: "{{ item.folder }}"
+      loop: "{{ vcfolder.folder.value | json_query(name) }}"
+      vars:
+        name: "[?type=='DATACENTER']"
+
+    - name: Create a datacenter
+      vmware_core_dc_manager:
+        datacenter_name: "{{ dc_name }}"
+        folder_name: "{{ dc_folder }}"

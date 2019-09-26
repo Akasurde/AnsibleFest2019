@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vcenter_vars.yml
+  tasks:
+    - vmware_datacenter_manager:
+        hostname: '{{ vcenter_hostname }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        validate_certs: False
+        datacenter_name: '{{ dc_name }}'

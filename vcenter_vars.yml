@@ -1,0 +1,10 @@
+vcenter_hostname: 10.65.200.215
+vcenter_username: administrator@vsphere.local
+vcenter_password: Esxi@123$%
+
+esxi_hostname: 10.65.201.113
+esxi_username: root
+esxi_password: esxi@123
+
+
+dc_name: Asia-Datacenter9
